@@ -20,7 +20,7 @@ app.use(express.json());
 
 // In-memory storage for rooms and messages
 const rooms = {};
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Duy@PaperChat2026!';
 
 // API Endpoint to clear a room
 app.post('/api/clear-room', (req, res) => {
@@ -43,7 +43,7 @@ app.post('/api/clear-room', (req, res) => {
 
 // API Endpoint to ban a user
 app.post('/api/ban-user', (req, res) => {
-  const { roomId, password, userId } = req.body;
+  const { roomId, password, userId, deleteMessages } = req.body;
   if (password !== ADMIN_PASSWORD) {
     return res.status(401).json({ success: false, message: 'Sai mật khẩu Admin!' });
   }
@@ -56,13 +56,15 @@ app.post('/api/ban-user', (req, res) => {
 
   rooms[roomId].bannedUsers.add(userId);
   
-  // Remove all messages from this user
-  rooms[roomId].messages = rooms[roomId].messages.filter(msg => msg.userId !== userId);
-
-  // Broadcast event so clients remove messages from this user
-  io.to(roomId).emit('user_banned', userId);
-
-  return res.json({ success: true, message: 'Đã cấm người dùng và xóa các tin nhắn của họ!' });
+  if (deleteMessages) {
+    // Remove all messages from this user
+    rooms[roomId].messages = rooms[roomId].messages.filter(msg => msg.userId !== userId);
+    // Broadcast event so clients remove messages from this user
+    io.to(roomId).emit('user_banned', userId);
+    return res.json({ success: true, message: 'Đã cấm người dùng và xóa các tin nhắn của họ!' });
+  } else {
+    return res.json({ success: true, message: 'Đã cấm người dùng (Giữ nguyên tin nhắn cũ)!' });
+  }
 });
 
 // API Endpoint to toggle lock status

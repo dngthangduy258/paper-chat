@@ -189,7 +189,8 @@ btnShare.addEventListener('click', () => {
 // Admin Logic
 const adminToggle = document.getElementById('admin-toggle');
 const adminCtx = document.getElementById('admin-context-menu');
-const btnBan = document.getElementById('btn-ban-user');
+const btnBanKeep = document.getElementById('btn-ban-keep');
+const btnBanDelete = document.getElementById('btn-ban-delete');
 let targetUserId = null;
 
 adminToggle.addEventListener('click', () => {
@@ -224,15 +225,16 @@ document.addEventListener('click', (e) => {
   }
 });
 
-btnBan.addEventListener('click', async () => {
+async function executeBan(deleteMessages) {
   if (!targetUserId || !adminPassword) return;
   
-  if (confirm("Chắc chắn cấm người này và xóa sạch chữ của họ?")) {
+  const confirmMsg = deleteMessages ? "Chắc chắn cấm người này và xóa sạch chữ của họ?" : "Chắc chắn cấm người này (nhưng giữ lại chữ cũ)?";
+  if (confirm(confirmMsg)) {
     try {
       const res = await fetch('/api/ban-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roomId, password: adminPassword, userId: targetUserId })
+        body: JSON.stringify({ roomId, password: adminPassword, userId: targetUserId, deleteMessages })
       });
       const data = await res.json();
       if (!data.success) {
@@ -243,4 +245,7 @@ btnBan.addEventListener('click', async () => {
     }
   }
   adminCtx.classList.add('hidden');
-});
+}
+
+btnBanKeep.addEventListener('click', () => executeBan(false));
+btnBanDelete.addEventListener('click', () => executeBan(true));

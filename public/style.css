@@ -221,12 +221,18 @@ button {
 
 .context-menu button {
   background: #fff;
-  color: #dc3545;
+  color: #333;
   width: 100%;
   text-align: left;
   border-radius: 2px;
+  padding: 8px 12px;
+  margin-bottom: 2px;
+}
+
+.context-menu button#btn-ban-delete {
+  color: #dc3545;
 }
 
 .context-menu button:hover {
-  background: #ffeeba;
+  background: #f0f0f0;
 }
