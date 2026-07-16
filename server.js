@@ -20,6 +20,26 @@ app.use(express.json());
 
 // In-memory storage for rooms and messages
 const rooms = {};
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+
+// API Endpoint to clear a room
+app.post('/api/clear-room', (req, res) => {
+  const { roomId, password } = req.body;
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ success: false, message: 'Sai mật khẩu Admin!' });
+  }
+  if (!roomId || !rooms[roomId]) {
+    return res.status(404).json({ success: false, message: 'Phòng không tồn tại hoặc đã trống.' });
+  }
+
+  // Clear messages in memory
+  rooms[roomId].messages = [];
+
+  // Broadcast to clients in this room to clear their UI
+  io.to(roomId).emit('room_cleared');
+
+  return res.json({ success: true, message: 'Đã xóa trắng phòng thành công!' });
+});
 
 // Socket.io connection handling
 io.on('connection', (socket) => {

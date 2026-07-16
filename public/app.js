@@ -56,6 +56,10 @@ socket.on('receive_message', (msg) => {
   renderMessage(msg);
 });
 
+socket.on('room_cleared', () => {
+  paper.innerHTML = '';
+});
+
 // Render message on paper
 function renderMessage(msg) {
   // Prevent duplicate rendering

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paper Chat - Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: #fdfbf7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .admin-box {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      text-align: center;
+      z-index: 10;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #8b6914;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+      outline: none;
+    }
+    input:focus {
+      border-color: #8b6914;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #8b6914;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #6a4f0f;
+    }
+    #msg {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      min-height: 20px;
+    }
+    .error { color: #dc3545; }
+    .success { color: #28a745; }
+  </style>
+</head>
+<body>
+  <div class="admin-box">
+    <h2>Admin - Dọn Dẹp Phòng</h2>
+    <input type="text" id="room-id" placeholder="Nhập ID Phòng (Room ID)">
+    <input type="password" id="password" placeholder="Mật khẩu Admin">
+    <button id="btn-clear">Xóa Sạch Giấy</button>
+    <div id="msg"></div>
+  </div>
+
+  <script>
+    document.getElementById('btn-clear').addEventListener('click', async () => {
+      const roomId = document.getElementById('room-id').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const msgEl = document.getElementById('msg');
+      
+      msgEl.textContent = '';
+      msgEl.className = '';
+
+      if (!roomId || !password) {
+        msgEl.textContent = 'Vui lòng điền đủ thông tin!';
+        msgEl.className = 'error';
+        return;
+      }
+
+      if (!confirm(`Bạn có chắc chắn muốn xóa toàn bộ chữ trong phòng "${roomId}" không?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/clear-room', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId, password })
+        });
+        
+        const data = await res.json();
+        msgEl.textContent = data.message;
+        msgEl.className = data.success ? 'success' : 'error';
+        
+        if (data.success) {
+          document.getElementById('room-id').value = '';
+          document.getElementById('password').value = '';
+        }
+      } catch (err) {
+        msgEl.textContent = 'Lỗi kết nối đến server!';
+        msgEl.className = 'error';
+      }
+    });
+  </script>
+</body>
+</html>
