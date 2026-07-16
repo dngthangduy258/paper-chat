@@ -14,6 +14,13 @@ let currentX = 0;
 let currentY = 0;
 let roomId = 'default-room';
 
+// Get or create unique user ID
+let myUserId = localStorage.getItem('paper_chat_userid');
+if (!myUserId) {
+  myUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+  localStorage.setItem('paper_chat_userid', myUserId);
+}
+
 // Get room from URL or generate one
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('room')) {
@@ -73,6 +80,16 @@ socket.on('room_unlocked', () => {
   statusText.textContent = 'Đã kết nối';
 });
 
+socket.on('user_banned', (bannedUserId) => {
+  // Remove all messages from this user from DOM
+  const msgs = document.querySelectorAll('.message');
+  msgs.forEach(m => {
+    if (m.getAttribute('data-userid') === bannedUserId) {
+      m.remove();
+    }
+  });
+});
+
 // Render message on paper
 function renderMessage(msg) {
   // Prevent duplicate rendering
@@ -89,8 +106,23 @@ function renderMessage(msg) {
   el.style.fontFamily = msg.font;
   el.style.transform = `translate(-50%, -50%) rotate(${msg.rotation}deg)`;
   
+  el.setAttribute('data-userid', msg.userId);
+  el.setAttribute('data-msgid', msg.id);
+
+  // Admin click to ban
+  el.addEventListener('click', (e) => {
+    if (isAdminMode) {
+      e.stopPropagation();
+      showAdminMenu(e.pageX, e.pageY, msg.userId, msg.text);
+    }
+  });
+  
   paper.appendChild(el);
 }
+
+// Admin Mode State
+let isAdminMode = false;
+let adminPassword = '';
 
 // Interaction
 paper.addEventListener('click', (e) => {
@@ -128,7 +160,8 @@ btnSend.addEventListener('click', () => {
         y: currentY,
         color: myColor,
         font: myFont,
-        rotation: myRotation
+        rotation: myRotation,
+        userId: myUserId
       }
     });
   }
@@ -151,4 +184,63 @@ btnShare.addEventListener('click', () => {
     btnShare.textContent = 'Đã copy link!';
     setTimeout(() => btnShare.textContent = oldText, 2000);
   });
+});
+
+// Admin Logic
+const adminToggle = document.getElementById('admin-toggle');
+const adminCtx = document.getElementById('admin-context-menu');
+const btnBan = document.getElementById('btn-ban-user');
+let targetUserId = null;
+
+adminToggle.addEventListener('click', () => {
+  if (isAdminMode) {
+    isAdminMode = false;
+    adminPassword = '';
+    adminToggle.textContent = '🛡️ Bật Admin';
+    adminToggle.classList.remove('active');
+  } else {
+    const pwd = prompt("Nhập mật khẩu Admin:");
+    if (pwd) {
+      isAdminMode = true;
+      adminPassword = pwd;
+      adminToggle.textContent = '🛡️ Tắt Admin';
+      adminToggle.classList.add('active');
+      alert("Chế độ Admin đã bật! Click vào tin nhắn bất kỳ trên giấy để cấm người dùng.");
+    }
+  }
+});
+
+function showAdminMenu(x, y, userId, text) {
+  targetUserId = userId;
+  adminCtx.style.left = `${x}px`;
+  adminCtx.style.top = `${y}px`;
+  adminCtx.classList.remove('hidden');
+}
+
+// Hide menu if click elsewhere
+document.addEventListener('click', (e) => {
+  if (!adminCtx.contains(e.target) && !e.target.classList.contains('message')) {
+    adminCtx.classList.add('hidden');
+  }
+});
+
+btnBan.addEventListener('click', async () => {
+  if (!targetUserId || !adminPassword) return;
+  
+  if (confirm("Chắc chắn cấm người này và xóa sạch chữ của họ?")) {
+    try {
+      const res = await fetch('/api/ban-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, password: adminPassword, userId: targetUserId })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message);
+      }
+    } catch (e) {
+      alert("Lỗi kết nối");
+    }
+  }
+  adminCtx.classList.add('hidden');
 });

@@ -26,6 +26,11 @@
     <span id="connection-status">Đang kết nối...</span>
     <span id="room-info">Phòng: <strong id="room-id"></strong></span>
     <button id="btn-share">Chia sẻ link phòng</button>
+    <button id="admin-toggle">🛡️ Bật Admin</button>
+  </div>
+
+  <div id="admin-context-menu" class="context-menu hidden">
+    <button id="btn-ban-user">🚫 Cấm người này & xóa chữ</button>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>

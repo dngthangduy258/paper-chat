@@ -41,6 +41,30 @@ app.post('/api/clear-room', (req, res) => {
   return res.json({ success: true, message: 'Đã xóa trắng phòng thành công!' });
 });
 
+// API Endpoint to ban a user
+app.post('/api/ban-user', (req, res) => {
+  const { roomId, password, userId } = req.body;
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ success: false, message: 'Sai mật khẩu Admin!' });
+  }
+  if (!roomId || !rooms[roomId]) {
+    return res.status(404).json({ success: false, message: 'Phòng không tồn tại.' });
+  }
+  if (!userId) {
+    return res.status(400).json({ success: false, message: 'Thiếu userId cần ban.' });
+  }
+
+  rooms[roomId].bannedUsers.add(userId);
+  
+  // Remove all messages from this user
+  rooms[roomId].messages = rooms[roomId].messages.filter(msg => msg.userId !== userId);
+
+  // Broadcast event so clients remove messages from this user
+  io.to(roomId).emit('user_banned', userId);
+
+  return res.json({ success: true, message: 'Đã cấm người dùng và xóa các tin nhắn của họ!' });
+});
+
 // API Endpoint to toggle lock status
 app.post('/api/toggle-lock', (req, res) => {
   const { roomId, password, lock } = req.body;
@@ -67,7 +91,7 @@ io.on('connection', (socket) => {
   socket.on('join_room', (roomId) => {
     socket.join(roomId);
     if (!rooms[roomId]) {
-      rooms[roomId] = { messages: [], isLocked: false };
+      rooms[roomId] = { messages: [], isLocked: false, bannedUsers: new Set() };
     }
     // Send existing messages and room state
     socket.emit('load_messages', rooms[roomId].messages);
@@ -81,6 +105,11 @@ io.on('connection', (socket) => {
     
     if (rooms[roomId] && rooms[roomId].isLocked) {
       // Room is locked, ignore message
+      return;
+    }
+
+    if (rooms[roomId] && rooms[roomId].bannedUsers.has(message.userId)) {
+      // User is banned, ignore message
       return;
     }
 

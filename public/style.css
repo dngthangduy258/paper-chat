@@ -191,3 +191,42 @@ button {
 #btn-share:hover {
   background: rgba(255,255,255,0.3);
 }
+
+#admin-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+}
+
+#admin-toggle.active {
+  background: #dc3545;
+}
+
+.context-menu {
+  position: absolute;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  padding: 5px;
+  z-index: 2000;
+  transition: opacity 0.2s;
+}
+
+.context-menu.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.context-menu button {
+  background: #fff;
+  color: #dc3545;
+  width: 100%;
+  text-align: left;
+  border-radius: 2px;
+}
+
+.context-menu button:hover {
+  background: #ffeeba;
+}
