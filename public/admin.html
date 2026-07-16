@@ -69,7 +69,11 @@
     <h2>Admin - Dọn Dẹp Phòng</h2>
     <input type="text" id="room-id" placeholder="Nhập ID Phòng (Room ID)">
     <input type="password" id="password" placeholder="Mật khẩu Admin">
-    <button id="btn-clear">Xóa Sạch Giấy</button>
+    <button id="btn-clear" style="background:#dc3545;margin-bottom:10px;">Xóa Sạch Giấy</button>
+    <div style="display:flex;gap:10px;margin-bottom:15px;">
+      <button id="btn-lock" style="background:#ffc107;color:#000;">Khóa Phòng</button>
+      <button id="btn-unlock" style="background:#28a745;">Mở Khóa</button>
+    </div>
     <div id="msg"></div>
   </div>
 
@@ -112,6 +116,39 @@
         msgEl.className = 'error';
       }
     });
+
+    async function toggleLock(lock) {
+      const roomId = document.getElementById('room-id').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const msgEl = document.getElementById('msg');
+      
+      msgEl.textContent = '';
+      msgEl.className = '';
+
+      if (!roomId || !password) {
+        msgEl.textContent = 'Vui lòng điền đủ thông tin!';
+        msgEl.className = 'error';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/toggle-lock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId, password, lock })
+        });
+        
+        const data = await res.json();
+        msgEl.textContent = data.message;
+        msgEl.className = data.success ? 'success' : 'error';
+      } catch (err) {
+        msgEl.textContent = 'Lỗi kết nối đến server!';
+        msgEl.className = 'error';
+      }
+    }
+
+    document.getElementById('btn-lock').addEventListener('click', () => toggleLock(true));
+    document.getElementById('btn-unlock').addEventListener('click', () => toggleLock(false));
   </script>
 </body>
 </html>

@@ -41,6 +41,24 @@ app.post('/api/clear-room', (req, res) => {
   return res.json({ success: true, message: 'Đã xóa trắng phòng thành công!' });
 });
 
+// API Endpoint to toggle lock status
+app.post('/api/toggle-lock', (req, res) => {
+  const { roomId, password, lock } = req.body;
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ success: false, message: 'Sai mật khẩu Admin!' });
+  }
+  if (!roomId || !rooms[roomId]) {
+    return res.status(404).json({ success: false, message: 'Phòng không tồn tại.' });
+  }
+
+  rooms[roomId].isLocked = !!lock;
+  const eventName = rooms[roomId].isLocked ? 'room_locked' : 'room_unlocked';
+  io.to(roomId).emit(eventName);
+
+  const statusMsg = rooms[roomId].isLocked ? 'đã bị KHÓA chat' : 'đã MỞ KHÓA chat';
+  return res.json({ success: true, message: `Phòng ${roomId} ${statusMsg} thành công!` });
+});
+
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
@@ -49,10 +67,11 @@ io.on('connection', (socket) => {
   socket.on('join_room', (roomId) => {
     socket.join(roomId);
     if (!rooms[roomId]) {
-      rooms[roomId] = { messages: [] };
+      rooms[roomId] = { messages: [], isLocked: false };
     }
-    // Send existing messages to the newly connected user
+    // Send existing messages and room state
     socket.emit('load_messages', rooms[roomId].messages);
+    socket.emit(rooms[roomId].isLocked ? 'room_locked' : 'room_unlocked');
     console.log(`User ${socket.id} joined room ${roomId}`);
   });
 
@@ -60,6 +79,11 @@ io.on('connection', (socket) => {
   socket.on('send_message', (data) => {
     const { roomId, message } = data;
     
+    if (rooms[roomId] && rooms[roomId].isLocked) {
+      // Room is locked, ignore message
+      return;
+    }
+
     // Add unique ID to message
     const msg = {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 5),

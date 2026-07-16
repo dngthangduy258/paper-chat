@@ -60,6 +60,19 @@ socket.on('room_cleared', () => {
   paper.innerHTML = '';
 });
 
+let isRoomLocked = false;
+socket.on('room_locked', () => {
+  isRoomLocked = true;
+  paper.style.cursor = 'not-allowed';
+  statusText.innerHTML = 'Đã kết nối <span style="color:#dc3545;font-weight:bold;margin-left:5px;">(ĐÃ KHÓA)</span>';
+});
+
+socket.on('room_unlocked', () => {
+  isRoomLocked = false;
+  paper.style.cursor = 'crosshair';
+  statusText.textContent = 'Đã kết nối';
+});
+
 // Render message on paper
 function renderMessage(msg) {
   // Prevent duplicate rendering
@@ -81,6 +94,10 @@ function renderMessage(msg) {
 
 // Interaction
 paper.addEventListener('click', (e) => {
+  if (isRoomLocked) {
+    alert("Quản trị viên đã khóa phòng, hiện không thể viết thêm lên giấy!");
+    return;
+  }
   if (e.target !== paper) return; // Ignore clicks on existing messages
   
   // Calculate relative to paper (in case of scrolling/zooming later)
