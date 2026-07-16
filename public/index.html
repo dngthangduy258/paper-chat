@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Paper Chat - Tờ giấy vô tận</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Patrick+Hand&family=Indie+Flower&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="paper" class="paper">
+    <!-- Messages will be rendered here -->
+  </div>
+
+  <div id="input-modal" class="modal hidden">
+    <div class="modal-content">
+      <textarea id="message-input" placeholder="Viết gì đó vào đây..."></textarea>
+      <div class="modal-actions">
+        <button id="btn-cancel">Hủy</button>
+        <button id="btn-send">Viết lên giấy</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="status-bar" class="status-bar">
+    <span id="connection-status">Đang kết nối...</span>
+    <span id="room-info">Phòng: <strong id="room-id"></strong></span>
+    <button id="btn-share">Chia sẻ link phòng</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
