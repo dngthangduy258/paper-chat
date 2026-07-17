@@ -237,6 +237,16 @@ button {
   border-radius: 2px;
   padding: 8px 12px;
   margin-bottom: 2px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.context-menu button#btn-delete-msg {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 6px;
+  padding-bottom: 12px;
 }
 
 .context-menu button#btn-ban-delete {

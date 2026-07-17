@@ -67,6 +67,29 @@ app.post('/api/ban-user', (req, res) => {
   }
 });
 
+// API Endpoint to delete a specific message
+app.post('/api/delete-message', (req, res) => {
+  const { roomId, password, msgId } = req.body;
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ success: false, message: 'Sai mật khẩu Admin!' });
+  }
+  if (!roomId || !rooms[roomId]) {
+    return res.status(404).json({ success: false, message: 'Phòng không tồn tại.' });
+  }
+
+  // Filter out the message
+  const initialLength = rooms[roomId].messages.length;
+  rooms[roomId].messages = rooms[roomId].messages.filter(msg => msg.id !== msgId);
+  
+  if (rooms[roomId].messages.length < initialLength) {
+    // Message was deleted, broadcast to clients
+    io.to(roomId).emit('message_deleted', msgId);
+    return res.json({ success: true, message: 'Đã xóa tin nhắn!' });
+  } else {
+    return res.status(404).json({ success: false, message: 'Không tìm thấy tin nhắn.' });
+  }
+});
+
 // API Endpoint to toggle lock status
 app.post('/api/toggle-lock', (req, res) => {
   const { roomId, password, lock } = req.body;

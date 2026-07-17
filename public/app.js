@@ -90,6 +90,11 @@ socket.on('user_banned', (bannedUserId) => {
   });
 });
 
+socket.on('message_deleted', (deletedMsgId) => {
+  const m = document.getElementById(`msg-${deletedMsgId}`);
+  if (m) m.remove();
+});
+
 // Render message on paper
 function renderMessage(msg) {
   // Prevent duplicate rendering
@@ -109,11 +114,11 @@ function renderMessage(msg) {
   el.setAttribute('data-userid', msg.userId);
   el.setAttribute('data-msgid', msg.id);
 
-  // Admin click to ban
+  // Admin click to ban/delete
   el.addEventListener('click', (e) => {
     if (isAdminMode) {
       e.stopPropagation();
-      showAdminMenu(e.pageX, e.pageY, msg.userId, msg.text);
+      showAdminMenu(e.pageX, e.pageY, msg.userId, msg.id);
     }
   });
   
@@ -189,9 +194,11 @@ btnShare.addEventListener('click', () => {
 // Admin Logic
 const adminToggle = document.getElementById('admin-toggle');
 const adminCtx = document.getElementById('admin-context-menu');
+const btnDeleteMsg = document.getElementById('btn-delete-msg');
 const btnBanKeep = document.getElementById('btn-ban-keep');
 const btnBanDelete = document.getElementById('btn-ban-delete');
 let targetUserId = null;
+let targetMsgId = null;
 
 adminToggle.addEventListener('click', () => {
   if (isAdminMode) {
@@ -213,8 +220,9 @@ adminToggle.addEventListener('click', () => {
   }
 });
 
-function showAdminMenu(x, y, userId, text) {
+function showAdminMenu(x, y, userId, msgId) {
   targetUserId = userId;
+  targetMsgId = msgId;
   adminCtx.style.left = `${x}px`;
   adminCtx.style.top = `${y}px`;
   adminCtx.classList.remove('hidden');
@@ -251,3 +259,24 @@ async function executeBan(deleteMessages) {
 
 btnBanKeep.addEventListener('click', () => executeBan(false));
 btnBanDelete.addEventListener('click', () => executeBan(true));
+
+btnDeleteMsg.addEventListener('click', async () => {
+  if (!targetMsgId || !adminPassword) return;
+  
+  if (confirm("Chắc chắn chỉ xóa dòng chữ này thôi?")) {
+    try {
+      const res = await fetch('/api/delete-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, password: adminPassword, msgId: targetMsgId })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message);
+      }
+    } catch (e) {
+      alert("Lỗi kết nối");
+    }
+  }
+  adminCtx.classList.add('hidden');
+});
