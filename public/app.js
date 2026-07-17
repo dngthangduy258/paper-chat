@@ -199,6 +199,7 @@ adminToggle.addEventListener('click', () => {
     adminPassword = '';
     adminToggle.textContent = '🛡️ Bật Admin';
     adminToggle.classList.remove('active');
+    document.body.classList.remove('admin-mode-active');
   } else {
     const pwd = prompt("Nhập mật khẩu Admin:");
     if (pwd) {
@@ -206,6 +207,7 @@ adminToggle.addEventListener('click', () => {
       adminPassword = pwd;
       adminToggle.textContent = '🛡️ Tắt Admin';
       adminToggle.classList.add('active');
+      document.body.classList.add('admin-mode-active');
       alert("Chế độ Admin đã bật! Click vào tin nhắn bất kỳ trên giấy để cấm người dùng.");
     }
   }

@@ -59,6 +59,16 @@ body, html {
   to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
+.admin-mode-active .message {
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 100;
+}
+
+.admin-mode-active .message:hover {
+  text-shadow: 0 0 5px rgba(220, 53, 69, 0.8);
+}
+
 /* Input Modal */
 .modal {
   position: fixed;
